@@ -1,0 +1,40 @@
+# ============================================================================
+# dsh-azure-maid-skin —— DSH bundle patch
+# ============================================================================
+# 这是插件的"挂载声明"。DSH 启动时按 bundle 层栈叠加各插件 patch,
+# 本文件把蓝瓷女仆主题皮肤插入 Web profile 的配置树。
+#
+# 安装方式:
+#   dsh plugin --profile web add link:<本目录绝对路径>
+# 或手工在 ~/.dsh/profiles/web/package.json 里做两件事:
+#   1. dependencies 加   "dsh-azure-maid-skin": "link:<本目录绝对路径>"
+#   2. dsh.profile.bundles 数组里加 "dsh-azure-maid-skin"
+# 然后重启 dsh web。
+#
+# 关闭方式(不卸载,只停用):
+#   dsh plugin --profile web remove dsh-azure-maid-skin
+#   或从 dsh.profile.bundles 里删掉本包名后重启。
+#
+# 本包同时提供两半,职责不同:
+#   · Host 半边(lib/index.js)   注入 lib/styles/azure-maid.css ——
+#     "打开就是这套配色",首绘不闪官方色。样式表里亮暗两档用
+#     prefers-color-scheme / body[data-ds-dark-theme] 分段,所以它自己也覆盖
+#     light / dark / system 三种偏好。
+#   · Client 半边(lib/client.js) 用 theme.overrideTokens 把同一套 90 个 token
+#     写成 body 行内样式,并贡献一个设置页(设置 → 蓝瓷女仆)用来切换
+#     亮色 / 暗色 / 跟随系统。
+#   两者不冲突:客户端接管时会给自己打上 data-dsh-azure-maid-client,
+#   首绘样式表随即通过 CSS 规则自行让位,不会各做一半。
+#
+# ⚠️ 关于 dsh.client 的坑(实测,记录以备复现):
+#   该字段声明的入口必须是**浏览器模块格式**:
+#     window.__ModuleLoader__.load({ id: '<包名>', factory: (require) => { ... } })
+#   裸 ESM(`export const ...`)放进去会导致 **DSH 启动失败**。
+#   lib/client.js 是 scripts/build-client.mjs 的产物,不要手工编辑;
+#   构建脚本会用 new Function() 对产物做一次语法自检,写坏了会直接构建失败。
+#   source map 可选 —— 加载器遇 ENOENT 即跳过,只有格式非法才抛错。
+# ============================================================================
+
+- insert:
+    - id: dsh-azure-maid-skin
+      name: dsh-azure-maid-skin

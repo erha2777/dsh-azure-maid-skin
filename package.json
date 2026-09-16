@@ -1,0 +1,68 @@
+{
+  "name": "dsh-azure-maid-skin",
+  "version": "1.0.0",
+  "description": "蓝瓷女仆 · Azure Maid —— 一个可跟随系统切换深浅色的 DSH Web GUI 主题皮肤:深蓝发色主调 / 蕾丝冷白提亮 / 青宝石点缀,覆盖 90 个语义 token",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek",
+    "deepseek-harness",
+    "theme",
+    "skin",
+    "dark-mode",
+    "theme-switcher",
+    "azure-maid"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./styles": "./lib/styles/azure-maid.css",
+    "./tokens": "./lib/tokens.js",
+    "./theme/palette": "./theme/palette.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "theme",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-tokens.mjs && node scripts/build-client.mjs",
+    "build:tokens": "node scripts/build-tokens.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "check": "node scripts/check-tokens.mjs && node scripts/check-contrast.mjs && node scripts/check-artifacts.mjs",
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "check:artifacts": "node scripts/check-artifacts.mjs",
+    "preview": "node scripts/preview.mjs",
+    "shoot": "node scripts/preview.mjs && node scripts/shoot-preview.mjs",
+    "make:dynamic": "node scripts/make-dynamic.mjs",
+    "solve": "node scripts/solve.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erha2777/dsh-azure-maid-skin.git"
+  },
+  "homepage": "https://github.com/erha2777/dsh-azure-maid-skin#readme",
+  "bugs": {
+    "url": "https://github.com/erha2777/dsh-azure-maid-skin/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

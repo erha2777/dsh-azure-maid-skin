@@ -1,0 +1,23 @@
+# 依赖
+node_modules/
+
+# 构建产物不忽略 —— lib/ 是发布内容,dev 与 runtime 读的都是它。
+# 只忽略临时文件与本地生成物:
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 一次性调试脚本(scripts/_*.mjs 是本地排查用的临时文件,不入库)
+scripts/_*.mjs
+
+# 无头浏览器截图时使用的临时 profile
+.tmp-chrome-profile/
+
+# 动态插件预览载荷(由 npm run make:dynamic 生成,本地验收用)
+tmp-dynamic/
