@@ -19,5 +19,9 @@ scripts/_*.mjs
 # 无头浏览器截图时使用的临时 profile
 .tmp-chrome-profile/
 
+# 无头浏览器自动拍出的对照图(手工真机图 light1/light2/dark1/dark2 要入库)
+preview/light.png
+preview/dark.png
+
 # 动态插件预览载荷(由 npm run make:dynamic 生成,本地验收用)
 tmp-dynamic/

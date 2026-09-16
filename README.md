@@ -85,13 +85,17 @@
 
 \* 亮暗两套是"角色互换"而不是"整体调暗"：亮色下正文是深蓝、画布是冷白；暗色下正文是冷白、画布是深夜蓝。
 
-上面截图里的配色如果是自己机器上的旧版本，重新出一组即可：
+上面那四张是**手工截的真机图**（连挂件一起截，能看出皮肤和挂件的搭配效果）。
+如果你改过配色、想重新出一组，或者想要不带挂件、只有配色本身的对照图：
 
 ```bash
-node scripts/preview.mjs && node scripts/shoot-preview.mjs   # 产出 preview/light.png 与 preview/dark.png
+node scripts/preview.mjs          # 重新生成预览页（改配色后必跑）
+node scripts/shoot-preview.mjs    # 可选：用本机浏览器给预览页拍图
 ```
 
-（这一步需要本机有 Chromium 系浏览器；没有也能跳过，不影响插件本身。）
+`shoot-preview.mjs` 产出的是 `preview/light.png` 与 `preview/dark.png`
+（注意与上面手工图的 `light1/light2/dark1/dark2` 是两套文件）。
+这一步需要本机有 Chromium 系浏览器；没有就跳过，不影响插件本身。
 
 ---
 
