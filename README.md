@@ -9,7 +9,6 @@
   <img alt="deps" src="https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg">
   <img alt="tokens" src="https://img.shields.io/badge/tokens-90%20%C3%97%202-2F7FB8.svg">
 </p>
-
 **先看一眼配色** → 直接用浏览器打开 [`preview/index.html`](preview/index.html)（无需安装、无需联网、无需构建）。
 页面上有三个模式按钮，点一下就能看亮暗两套的实际观感，右下角还会用**浏览器真实计算出的值**实时算 WCAG 对比度。
 
@@ -384,56 +383,6 @@ dsh-azure-maid-skin/
 **支持哪些 DSH 版本？**
 只依赖公开的 `--dsw-*` 语义 token、`webServer.tapIndex` 与客户端的 `theme` 服务，
 不碰任何产品内部类名。`npm run check:tokens` 会在 DSH 新增语义 token 时提醒你补齐。
-
----
-
-## 项目信息
-
-### 简介（GitHub 仓库 About 栏）
-
-GitHub 的 About 描述栏有 350 字符上限，直接复制这一段：
-
-```
-蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤。配色取自社区挂件 DeepSeek-Balance-Whale-Widget 的蓝发女仆形象：深蓝发色做品牌与交互、蕾丝冷白做正文与画布、发间青宝石做链接与强调。覆盖 90 个语义 token，亮暗各一套，支持亮色 / 暗色 / 跟随系统三种偏好切换。零运行时依赖。
-```
-
-短版（想更精炼时用）：
-
-```
-蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤：深蓝发色 / 蕾丝冷白 / 青宝石点缀，90 个语义 token 亮暗双档，支持跟随系统。
-```
-
-### Topics（仓库标签）
-
-在仓库首页右上角 ⚙️ → **Topics** 里逐个添加（GitHub 限制最多 20 个，且只能小写字母、数字与连字符）：
-
-```
-dsh  dsh-plugin  dsh-skin  deepseek  deepseek-harness  theme  skin
-dark-mode  light-mode  theme-switcher  css-variables  design-tokens  azure-maid
-```
-
-### 版本 tag
-
-仓库目前的提交还没有打 tag。本包版本是 `1.0.0`（见 `package.json`），建议这样发第一个版本：
-
-```bash
-git tag -a v1.0.0 -m "蓝瓷女仆 · Azure Maid 1.0.0
-
-- 覆盖 90 个 DSH 语义 token，亮暗各一套
-- 支持亮色 / 暗色 / 跟随系统三种外观偏好
-- 零运行时依赖；自带 token 对齐、WCAG 对比度、产物完整性与渲染冒烟自检"
-git push origin v1.0.0
-```
-
-以后改配色时建议同步三处，避免版本号与实际内容脱节：
-
-1. `package.json` 的 `version`
-2. README 顶部徽章（如需要）
-3. `git tag`（打一个同号的新 tag，例如 `v1.0.1`）
-
-想要 GitHub 自动生成 "Source code" 归档包，tag 推送后即可在
-**Releases → Draft a new release → 选择该 tag** 里发布；不发布 Release 也能被
-`npm install github:erha2777/dsh-azure-maid-skin#v1.0.0` 这样的写法直接引用。
 
 ---
 
