@@ -118,18 +118,47 @@ npm run make:dynamic # 可选：生成"当场验收"用的动态插件载荷
 
 ## 安装
 
-DSH 的插件按 profile 挂载。把本包装进 `web` profile：
+DSH 的插件按 profile 挂载。装进 `web` profile 有三步，最后一步必须做。
+
+### 方式 A：官方 CLI（推荐）
 
 ```bash
 dsh plugin --profile web add link:/绝对路径/dsh-azure-maid-skin
 ```
 
-或者手工改 `~/.dsh/profiles/web/package.json`：
+CLI 会写好 profile 的 `package.json` 并调用 pnpm 建立链接。
+
+> **前提：`pnpm` 必须在 PATH 上。** 如果没装，CLI 会以
+> `dsh: pnpm failed in profile directory ...` 失败 —— 它不做降级，此时请用方式 B。
+
+### 方式 B：手工安装
+
+CLI 不可用时手工做同样的三件事。把插件目录链到 DSH 的插件区（Windows 用目录联接，
+`/mnt/c/...` 之类的路径请按平台换成 `ln -s`），避免把仓库复制两份：
+
+```powershell
+# 1. 插件区链接
+New-Item -ItemType Junction `
+  -Path  "$env:USERPROFILE\.dsh\plugins\dsh-azure-maid-skin" `
+  -Target "C:\绝对路径\dsh-azure-maid-skin"
+
+# 2. profile 的 node_modules 链接
+#    这一步最容易漏 —— DSH 是从 profile 目录解析插件包的，少了它
+#    重启后会报找不到模块。pnpm 正常工作时就是它建的这个链接。
+New-Item -ItemType Junction `
+  -Path  "$env:USERPROFILE\.dsh\profiles\web\node_modules\dsh-azure-maid-skin" `
+  -Target "$env:USERPROFILE\.dsh\plugins\dsh-azure-maid-skin"
+```
+
+```bash
+# 3. 登记进 profile：dependencies 加一条，bundles 加一项
+#    ~/.dsh/profiles/web/package.json
+```
 
 ```json
 {
   "dependencies": {
-    "dsh-azure-maid-skin": "link:/绝对路径/dsh-azure-maid-skin"
+    "dsh-azure-maid-skin": "link:C:/Users/你/.dsh/plugins/dsh-azure-maid-skin"
   },
   "dsh": {
     "profile": {
@@ -144,14 +173,46 @@ dsh plugin --profile web add link:/绝对路径/dsh-azure-maid-skin
 }
 ```
 
-然后重启 `dsh web`（或让 profile 热重载生效），刷新页面。
+### 装完先自检，再重启
 
-**停用而不卸载**：`dsh plugin --profile web remove dsh-azure-maid-skin`，或从
-`dsh.profile.bundles` 里删掉包名后重启。样式与主题层都会随插件一起消失，
-不会在别处留下残留。
+```bash
+node scripts/verify-install.mjs
+```
 
-**临时试一下**：不想改 profile 的话，可以生成一份动态插件的 Client 载荷，
-贴进 DSH 的 Cordis 会话里当场看效果 —— 配色用的就是仓库里的真实值：
+它会以 **profile 的解析上下文**真跑一遍：登记是否齐全、包能否被 `require.resolve`
+命中、Host 半边能否 `import`（并检查导出形状）、`dsh.client` 声明的 `./client`
+是否存在且是 `__ModuleLoader__` 格式、`cordis.patch.yml` 是否是合法的 patch。
+有问题会一条条列出来，比重启后对着白屏猜要快。
+
+### 必须重启 `dsh web`
+
+**`dsh.profile.bundles` 是启动时读取的**，往里面新增 bundle 不会热生效：
+
+```bash
+# 停掉当前的 dsh web，再重新起一个
+dsh web
+```
+
+注意区分：`patchReload: "live"` 的"实时"只覆盖
+`~/.dsh/profiles/web/cordis.patch.yml` 与用户级的 `~/.dsh/cordis.patch.yml`
+两个 patch 文件（改它们会立刻重新合成配置树）；**bundle 列表不在此列**。
+
+重启后刷新页面，应该立刻是这套配色，并且**设置 → 蓝瓷女仆**里能看到三个模式按钮。
+
+### 改完配色不用重启
+
+Host 半边按 mtime 缓存样式表：改 `lib/styles/azure-maid.css` 后硬刷新页面即可。
+改 `theme/palette.mjs` 要先 `npm run build` 重新生成产物。
+
+### 停用而不卸载
+
+把包名从 `dsh.profile.bundles` 里删掉后重启（或临时在
+`~/.dsh/cordis.patch.yml` 里加一条 `- id: dsh-azure-maid-skin` + `disabled: true`，
+这条会**实时生效**）。样式与主题覆盖层都会随插件一起消失，不会在别处留下残留。
+
+### 临时试一下（不碰 profile、不重启）
+
+想先看效果再决定装不装，可以生成一份动态插件的 Client 载荷贴进 DSH 的 Cordis 会话：
 
 ```bash
 npm run make:dynamic     # 产出 tmp-dynamic/preview-client.js
@@ -350,6 +411,7 @@ dsh-azure-maid-skin/
 │   ├── check-artifacts.mjs  ├── color.mjs
 │   ├── preview.mjs          ├── shoot-preview.mjs
 │   ├── make-dynamic.mjs     ← 生成"当场验收"用的动态插件载荷
+│   ├── verify-install.mjs   ← 安装后自检(以 profile 的解析上下文真跑一遍)
 │   ├── solve.mjs            ← 一次性调色求解器（挑"刚好达标"的颜色）
 │   └── test-react-shim.mjs  ← 零依赖的 hook 替身，供渲染冒烟使用
 ├── preview/index.html       ← 自包含配色预览页
@@ -383,6 +445,56 @@ dsh-azure-maid-skin/
 **支持哪些 DSH 版本？**
 只依赖公开的 `--dsw-*` 语义 token、`webServer.tapIndex` 与客户端的 `theme` 服务，
 不碰任何产品内部类名。`npm run check:tokens` 会在 DSH 新增语义 token 时提醒你补齐。
+
+---
+
+## 项目信息
+
+### 简介（GitHub 仓库 About 栏）
+
+GitHub 的 About 描述栏有 350 字符上限，直接复制这一段：
+
+```
+蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤。配色取自社区挂件 DeepSeek-Balance-Whale-Widget 的蓝发女仆形象：深蓝发色做品牌与交互、蕾丝冷白做正文与画布、发间青宝石做链接与强调。覆盖 90 个语义 token，亮暗各一套，支持亮色 / 暗色 / 跟随系统三种偏好切换。零运行时依赖。
+```
+
+短版（想更精炼时用）：
+
+```
+蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤：深蓝发色 / 蕾丝冷白 / 青宝石点缀，90 个语义 token 亮暗双档，支持跟随系统。
+```
+
+### Topics（仓库标签）
+
+在仓库首页右上角 ⚙️ → **Topics** 里逐个添加（GitHub 限制最多 20 个，且只能小写字母、数字与连字符）：
+
+```
+dsh  dsh-plugin  dsh-skin  deepseek  deepseek-harness  theme  skin
+dark-mode  light-mode  theme-switcher  css-variables  design-tokens  azure-maid
+```
+
+### 版本 tag
+
+仓库目前的提交还没有打 tag。本包版本是 `1.0.0`（见 `package.json`），建议这样发第一个版本：
+
+```bash
+git tag -a v1.0.0 -m "蓝瓷女仆 · Azure Maid 1.0.0
+
+- 覆盖 90 个 DSH 语义 token，亮暗各一套
+- 支持亮色 / 暗色 / 跟随系统三种外观偏好
+- 零运行时依赖；自带 token 对齐、WCAG 对比度、产物完整性与渲染冒烟自检"
+git push origin v1.0.0
+```
+
+以后改配色时建议同步三处，避免版本号与实际内容脱节：
+
+1. `package.json` 的 `version`
+2. README 顶部徽章（如需要）
+3. `git tag`（打一个同号的新 tag，例如 `v1.0.1`）
+
+想要 GitHub 自动生成 "Source code" 归档包，tag 推送后即可在
+**Releases → Draft a new release → 选择该 tag** 里发布；不发布 Release 也能被
+`npm install github:erha2777/dsh-azure-maid-skin#v1.0.0` 这样的写法直接引用。
 
 ---
 

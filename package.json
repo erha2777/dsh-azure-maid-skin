@@ -42,6 +42,7 @@
     "preview": "node scripts/preview.mjs",
     "shoot": "node scripts/preview.mjs && node scripts/shoot-preview.mjs",
     "make:dynamic": "node scripts/make-dynamic.mjs",
+    "verify:install": "node scripts/verify-install.mjs",
     "solve": "node scripts/solve.mjs"
   },
   "repository": {
