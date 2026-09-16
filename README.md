@@ -178,10 +178,25 @@ New-Item -ItemType Junction `
 node scripts/verify-install.mjs
 ```
 
-它会以 **profile 的解析上下文**真跑一遍：登记是否齐全、包能否被 `require.resolve`
-命中、Host 半边能否 `import`（并检查导出形状）、`dsh.client` 声明的 `./client`
-是否存在且是 `__ModuleLoader__` 格式、`cordis.patch.yml` 是否是合法的 patch。
-有问题会一条条列出来，比重启后对着白屏猜要快。
+它以 **profile 的解析上下文**真跑一遍，六项：
+
+| # | 检查 | 拦的是什么 |
+| --- | --- | --- |
+| 1 | profile 登记 | 忘了写进 `dependencies` / `bundles` |
+| 2 | 模块解析 | 忘了在 profile 的 `node_modules` 里建链接 |
+| 3 | `dsh.client` | `./client` 导出缺失，或不是 `__ModuleLoader__` 格式 |
+| 4 | Host 半边 | 真的 `import` 一次，检查导出形状、`apply()`、`inject`、样式路由 |
+| 5 | `cordis.patch.yml` | 缺 `insert:` 条目，或 id 写错 |
+| 6 | **bundles 解析预检** | **任何一个 bundle 解析不到 —— 包括与本插件无关的其它插件** |
+
+第 6 项值得单独说：DSH 启动时会按 Node 的 `node_modules` 向上查找顺序解析
+`bundles` 里的**每一项**，任何一项找不到就抛
+`cannot resolve profile bundle ...`，`dsh web` **完全起不来**。
+
+最容易踩的情形是某个插件目录被删除或移动后，profile 的 `node_modules` 里留下
+一条指向空路径的链接 —— 链接本身不报错，但它会让整个 DSH 无法启动。
+这一项就是给这种"白屏 + 翻堆栈"准备的：重启前先跑一遍，几秒钟就知道能不能起来。
+只想确认"这次重启能不能成功"，看第 6 节就够了。
 
 ### 必须重启 dsh web
 

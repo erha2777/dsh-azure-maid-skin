@@ -65,6 +65,7 @@ if (packageJsonPath !== null) {
   if (fs.existsSync(mainFile)) ok(`main 存在: ${pkg.main}`)
   else bad(`main 不存在: ${mainFile}`)
 
+
   // 3. dsh.client 的 ./client 导出
   console.log('\n[3] dsh.client 声明')
   const decl = pkg.dsh && pkg.dsh.client
@@ -142,11 +143,116 @@ if (packageJsonPath !== null) {
   }
 }
 
+// ── 6. 所有 bundle 都能被解析? ─────────────────────────────────────────────
+/**
+ * 这一步复刻 DSH 启动时的 `resolveBundleDir`:它按 **Node 的 node_modules 向上
+ * 查找顺序**,先看 dsh 安装目录、再看 profile 目录,找带 package.json 的包目录;
+ * 找不到就直接抛错、**整个 dsh web 起不来**。
+ *
+ * 为什么要单独查一遍:bundles 里**任何一个**条目(包括与本插件无关的其它插件)
+ * 解析失败都会挡住启动。典型事故是某个插件目录被删/被移动后,profile 的
+ * node_modules 里留下一条指向空路径的链接 —— 它自己不会报错,但会让
+ * `dsh web` 抛出 "cannot resolve profile bundle ..." 而完全无法启动。
+ * 在重启之前先跑这一步,能省掉一轮"白屏 + 翻堆栈"。
+ */
+console.log('\n[6] bundles 解析预检(复刻 dsh 的 resolveBundleDir)')
+/**
+ * dsh 用它自己所在包的 package.json 当"安装锚点",先在那里解析 bundle,
+ * 再退到 profile 目录。这里照做:优先环境变量,否则在 npx 缓存里找
+ * `@deepseek-ai/dsh/package.json`。找不到就只查 profile 目录(会漏报
+ * 装在 dsh 安装目录里的 bundle,所以只作为降级)。
+ */
+function findInstallAnchor() {
+  if (process.env.DSH_INSTALL_ANCHOR) return process.env.DSH_INSTALL_ANCHOR
+  const npxRoot = path.join(process.env.LOCALAPPDATA || '', 'npm-cache', '_npx')
+  if (!fs.existsSync(npxRoot)) return undefined
+  try {
+    for (const entry of fs.readdirSync(npxRoot)) {
+      const candidate = path.join(npxRoot, entry, 'node_modules', '@deepseek-ai', 'dsh', 'package.json')
+      if (fs.existsSync(candidate)) return candidate
+    }
+  } catch (err) {
+    // 读不到就降级
+  }
+  return undefined
+}
+const INSTALL_ANCHOR = findInstallAnchor()
+if (INSTALL_ANCHOR === undefined) {
+  console.log('  (未找到 dsh 安装锚点,只按 profile 目录解析;可设 DSH_INSTALL_ANCHOR 指定)')
+} else {
+  console.log(`  dsh 安装锚点: ${INSTALL_ANCHOR}`)
+}
+/** Node 的 node_modules 向上查找顺序(不要求父包存在)。 */
+function nodeModulesPaths(fromDir) {
+  const out = []
+  let dir = path.resolve(fromDir)
+  for (;;) {
+    out.push(path.join(dir, 'node_modules'))
+    const parent = path.dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return out
+}
+function packageDirFromAnchor(anchorPath, name) {
+  const searchPaths = []
+  try {
+    if (fs.existsSync(anchorPath)) searchPaths.push(...(createRequire(anchorPath).resolve.paths(name) ?? []))
+  } catch (err) {
+    // 锚点不可用时退回纯向上查找
+  }
+  searchPaths.push(...nodeModulesPaths(path.dirname(anchorPath)))
+  const seen = new Set()
+  for (const searchPath of searchPaths) {
+    if (seen.has(searchPath)) continue
+    seen.add(searchPath)
+    const candidate = path.join(searchPath, name)
+    if (fs.existsSync(path.join(candidate, 'package.json'))) return candidate
+  }
+  return undefined
+}
+function resolveBundleDir(name) {
+  const anchors = [
+    INSTALL_ANCHOR,
+    path.join(PROFILE_DIR, 'package.json'),
+  ].filter((value) => typeof value === 'string')
+  for (const anchor of anchors) {
+    const dir = packageDirFromAnchor(anchor, name)
+    if (dir !== undefined) return dir
+  }
+  return undefined
+}
+
+for (const name of bundles) {
+  const dir = resolveBundleDir(name)
+  if (dir === undefined) {
+    bad(`bundles 里的 "${name}" 解析不到 —— dsh web 会直接启动失败`)
+    continue
+  }
+  let declared
+  try {
+    declared = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).dsh?.bundle?.patch
+  } catch (err) {
+    bad(`bundles 里的 "${name}" 读不到 package.json: ${(err && err.message) || err}`)
+    continue
+  }
+  if (declared === undefined) {
+    bad(`bundles 里的 "${name}" 没有 dsh.bundle.patch`)
+    continue
+  }
+  if (!fs.existsSync(path.join(dir, declared))) {
+    bad(`bundles 里的 "${name}" 的 patch 文件缺失: ${declared}`)
+    continue
+  }
+  ok(`bundle "${name}" → ${dir}`)
+}
+
 console.log('')
 if (problems.length > 0) {
   console.error(`verify-install 失败(${problems.length} 项):`)
   for (const p of problems) console.error(`  ✗ ${p}`)
   process.exit(1)
 }
-console.log('✓ verify-install 通过:插件已登记、可解析、Host 半边可 import、客户端 bundle 格式正确、patch 合法')
+console.log('✓ verify-install 通过:插件已登记、可解析、Host 半边可 import、客户端 bundle 格式正确、patch 合法、bundles 全部可解析')
 console.log('  还需要重启 dsh web 让新 bundle 进入配置树(见 README/答复说明)。')
+console.log('  提示:若只想确认"重启能不能起得来",看第 [6] 节即可。')
