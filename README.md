@@ -18,24 +18,64 @@
 ## 目录
 
 - [它长什么样](#它长什么样)
+- [配色从哪里来](#配色从哪里来)
+- [挂件来源与致谢](#挂件来源与致谢)
 - [快速开始](#快速开始)
 - [安装](#安装)
 - [三种外观偏好是怎么实现的](#三种外观偏好是怎么实现的)
-- [配色从哪里来](#配色从哪里来)
+- [色值是怎么流转的](#色值是怎么流转的)
 - [改配色](#改配色)
 - [自检](#自检)
 - [仓库结构](#仓库结构)
 - [常见问题](#常见问题)
+- [项目信息](#项目信息)
 - [许可证](#许可证)
 
 ---
 
 ## 它长什么样
 
-配色取自参考图的五个色域，每个色域在亮/暗两套里各占一个明度档 ——
+下面是**装上之后**的真实截图（同一个界面，左右分别是亮色与暗色）：
+
+<table>
+  <tr>
+    <th align="center" width="50%">亮色</th>
+    <th align="center" width="50%">暗色</th>
+  </tr>
+  <tr>
+    <td><img src="preview/light1.png" alt="亮色 · 主界面"></td>
+    <td><img src="preview/dark1.png" alt="暗色 · 主界面"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>冷白画布 + 浅蓝侧栏，正文深蓝</sub></td>
+    <td align="center"><sub>深夜蓝画布，正文冷白</sub></td>
+  </tr>
+  <tr>
+    <td><img src="preview/light2.png" alt="亮色 · 配色自检页"></td>
+    <td><img src="preview/dark2.png" alt="暗色 · 配色自检页"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>色板、实时 WCAG 对比度、全部 90 个 token</sub></td>
+    <td align="center"><sub>同一页在暗色下的取值</sub></td>
+  </tr>
+</table>
+
+右下角那只蓝发女仆挂件不是本仓库的东西 —— 它是社区项目
+[DeepSeek-Balance-Whale-Widget](https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget)，
+本皮肤正是从它的**挂件配色**取色而来，出处见[挂件来源与致谢](#挂件来源与致谢)。
+
+还想要可交互的版本 → 用浏览器打开 [`preview/index.html`](preview/index.html)
+（无需安装、无需联网、无需构建），三个模式按钮点一下就能切，右下角会用
+**浏览器真实计算出的值**实时算 WCAG 对比度。
+
+---
+
+## 配色从哪里来
+
+配色取自挂件的五个色域，每个色域在亮/暗两套里各占一个明度档 ——
 **暗色不是"把亮色调暗"，而是同一个色域的另一个档位**，和同一束头发的高光与阴影关系一致：
 
-| 色域 | 参考图取样 | 亮色档 | 暗色档 | 在界面里承担 |
+| 色域 | 挂件取样 | 亮色档 | 暗色档 | 在界面里承担 |
 | --- | --- | --- | --- | --- |
 | 发色（主） | `#5568B0` `#6F82C8` `#8A9AD8` | `#3A4A8C` | `#8A9AD8` | 品牌色、按钮填充、强调 |
 | 发影 | `#2A3568` `#39457F` | `#141C36` | `#E8EEFB`* | 正文、标题 |
@@ -45,7 +85,7 @@
 
 \* 亮暗两套是"角色互换"而不是"整体调暗"：亮色下正文是深蓝、画布是冷白；暗色下正文是冷白、画布是深夜蓝。
 
-如果想要真实的截图，在自己的机器上跑一次：
+上面截图里的配色如果是自己机器上的旧版本，重新出一组即可：
 
 ```bash
 node scripts/preview.mjs && node scripts/shoot-preview.mjs   # 产出 preview/light.png 与 preview/dark.png
@@ -181,7 +221,7 @@ theme.overrideTokens(source, {
 
 ---
 
-## 配色从哪里来
+## 色值是怎么流转的
 
 三层结构，越往下越"只改一处"：
 
@@ -205,6 +245,45 @@ scripts/build-client.mjs  →  lib/client.js（把 token 内联进客户端模�
 `npm run check:tokens` 会把本表与本机 DSH 的基线逐一对齐，多一个或少一个都报错 ——
 这是一道"升级哨兵"：DSH 版本升级新增语义 token 时会立刻暴露，而不是等用户在界面上
 看到某个角落还是官方配色才发现。
+
+---
+
+## 挂件来源与致谢
+
+### 配色出处
+
+本皮肤的配色**取样自下面这个项目的挂件**：
+
+> **[MeteorNOX/DeepSeek-Balance-Whale-Widget](https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget)**
+> —— DSH 的余额/鲸鱼挂件，带一只蓝发女仆形象的看板娘。
+
+上面截图右下角的那只挂件来自该项目。本仓库从它的**挂件配色**里取了五个色域
+（见[配色从哪里来](#配色从哪里来)），再据此推导出 90 个 DSH 语义 token 的亮暗两套取值。
+
+本项目是**取色灵感上的衍生**，与该项目之间：
+
+- **不包含**其任何源码、素材或图片文件 —— 本仓库里没有一行代码或一张图片来自该项目；
+- **不共享**其许可证 —— 本仓库代码按 [MIT](LICENSE) 授权；
+- **不代表**该项目作者 —— 有问题请提到[本仓库的 Issues](https://github.com/erha2777/dsh-azure-maid-skin/issues)，
+  不要去打扰上游作者。
+
+如果想在界面上拥有截图里那只挂件本身，请直接安装上面那个项目 —— 本皮肤只负责配色，
+两者可以同时装、互不冲突。
+
+### 关于挂件形象的版权
+
+挂件里的角色形象与美术资源,其权利归**原作者 / 上游项目**所有,本仓库不主张任何权利,
+也没有随附或再分发这些素材。本皮肤仅仅是在**颜色层面**向它靠拢(用了相近的蓝色系、
+冷白与青蓝点缀),不含任何角色形象本身。
+
+如果你的目的是把这类角色美术用于再分发或商业场景,请自行向原作者确认授权 ——
+MIT 许可证覆盖的是**本仓库的代码**,不覆盖第三方的角色形象。
+
+### 致谢
+
+- [MeteorNOX/DeepSeek-Balance-Whale-Widget](https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget) —— 配色灵感与挂件来源
+- [DeepSeek Harness](https://github.com/deepseek-ai) —— 主题服务提供了 `overrideTokens`
+  这层叠加 API，才让"一层覆盖同时覆盖亮色/暗色/跟随系统"成为可能
 
 ---
 
@@ -304,7 +383,60 @@ dsh-azure-maid-skin/
 
 ---
 
+## 项目信息
+
+### 简介（GitHub 仓库 About 栏）
+
+GitHub 的 About 描述栏有 350 字符上限，直接复制这一段：
+
+```
+蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤。配色取自社区挂件 DeepSeek-Balance-Whale-Widget 的蓝发女仆形象：深蓝发色做品牌与交互、蕾丝冷白做正文与画布、发间青宝石做链接与强调。覆盖 90 个语义 token，亮暗各一套，支持亮色 / 暗色 / 跟随系统三种偏好切换。零运行时依赖。
+```
+
+短版（想更精炼时用）：
+
+```
+蓝瓷女仆 · Azure Maid —— DSH Web GUI 主题皮肤：深蓝发色 / 蕾丝冷白 / 青宝石点缀，90 个语义 token 亮暗双档，支持跟随系统。
+```
+
+### Topics（仓库标签）
+
+在仓库首页右上角 ⚙️ → **Topics** 里逐个添加（GitHub 限制最多 20 个，且只能小写字母、数字与连字符）：
+
+```
+dsh  dsh-plugin  dsh-skin  deepseek  deepseek-harness  theme  skin
+dark-mode  light-mode  theme-switcher  css-variables  design-tokens  azure-maid
+```
+
+### 版本 tag
+
+仓库目前的提交还没有打 tag。本包版本是 `1.0.0`（见 `package.json`），建议这样发第一个版本：
+
+```bash
+git tag -a v1.0.0 -m "蓝瓷女仆 · Azure Maid 1.0.0
+
+- 覆盖 90 个 DSH 语义 token，亮暗各一套
+- 支持亮色 / 暗色 / 跟随系统三种外观偏好
+- 零运行时依赖；自带 token 对齐、WCAG 对比度、产物完整性与渲染冒烟自检"
+git push origin v1.0.0
+```
+
+以后改配色时建议同步三处，避免版本号与实际内容脱节：
+
+1. `package.json` 的 `version`
+2. README 顶部徽章（如需要）
+3. `git tag`（打一个同号的新 tag，例如 `v1.0.1`）
+
+想要 GitHub 自动生成 "Source code" 归档包，tag 推送后即可在
+**Releases → Draft a new release → 选择该 tag** 里发布；不发布 Release 也能被
+`npm install github:erha2777/dsh-azure-maid-skin#v1.0.0` 这样的写法直接引用。
+
+---
+
 ## 许可证
 
 [MIT](LICENSE)
-# dsh-azure-maid-skin
+
+本仓库代码（含配色取值与文档）按 MIT 授权。**第三方角色形象与挂件美术不在此列** ——
+详见[挂件来源与致谢](#挂件来源与致谢)。
+

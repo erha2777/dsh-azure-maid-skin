@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 dsh-azure-maid-skin contributors
+Copyright (c) 2025 erha2777
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+注意 / Note
+
+本许可证覆盖的是本仓库的**代码、配色取值与文档**。
+
+挂件中的角色形象与美术资源版权归其原作者及上游项目
+(https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget) 所有，
+本仓库未随附、未再分发这些素材，也不对其主张任何权利。
+本项目仅在**颜色层面**参考其挂件配色，详见 README 的「挂件来源与致谢」。
+
