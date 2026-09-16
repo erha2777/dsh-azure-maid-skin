@@ -316,6 +316,15 @@ if (plugin !== null) {
   }
 
   // 4a. 覆盖层
+  // 插件必须有硬依赖 theme:否则 apply() 恰好在主题服务挂载前执行时,effect 会
+  // 注册成空操作且永不重试 —— 表现就是"皮肤装了但切深浅没反应",且无任何报错。
+  const declaredInject = Array.isArray(plugin.inject) ? plugin.inject : []
+  if (!declaredInject.includes('theme')) {
+    fail(`插件没有把 theme 声明为硬依赖(当前 inject=${JSON.stringify(declaredInject)})—— 存在主题服务晚挂载时静默失效的风险`)
+  } else {
+    notes.push('已声明 inject: [theme],不存在主题服务晚挂载的时序窗口')
+  }
+
   const override = ctx.__log.find((entry) => entry.kind === 'overrideTokens')
   if (override === undefined) {
     fail('apply() 没有调用 theme.overrideTokens —— 配色不会生效')
